@@ -13,7 +13,7 @@
   <title>ヘルプ管理</title>
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="icon-192.png">
-  <link rel="stylesheet" href="style.css?v=6">
+  <link rel="stylesheet" href="style.css?v=8">
 </head>
 <body>
   <div id="app">
@@ -75,18 +75,23 @@
       <div id="stats-summary" class="summary-card"></div>
 
       <div class="stats-section">
-        <h3>ヘルプに行った回数（応援者別）</h3>
-        <div class="stats-chart-container">
-          <canvas id="chart-helper" class="stats-chart-canvas" height="200"></canvas>
+        <h3>メンバー別ヘルプ回数（応援／依頼）</h3>
+        <div class="chart-legend">
+          <span class="chart-legend-item"><span class="chart-legend-swatch helper"></span>応援した</span>
+          <span class="chart-legend-item"><span class="chart-legend-swatch helpee"></span>依頼した</span>
         </div>
+        <div class="stats-chart-container">
+          <canvas id="chart-combined" class="stats-chart-canvas" height="200"></canvas>
+        </div>
+      </div>
+
+      <div class="stats-section">
+        <h3>ヘルプに行った回数（応援者別）</h3>
         <div id="stats-helper" class="stats-table-wrap"></div>
       </div>
 
       <div class="stats-section">
         <h3>ヘルプを依頼した回数（依頼者別）</h3>
-        <div class="stats-chart-container">
-          <canvas id="chart-helpee" class="stats-chart-canvas" height="200"></canvas>
-        </div>
         <div id="stats-helpee" class="stats-table-wrap"></div>
       </div>
 
@@ -128,7 +133,7 @@
   <script src="lib/jspdf.min.js"></script>
   <script src="lib/html2canvas.min.js"></script>
   <script src="lib/xlsx.min.js"></script>
-  <script src="app.js?v=9"></script>
+  <script src="app.js?v=10"></script>
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('./sw.js');

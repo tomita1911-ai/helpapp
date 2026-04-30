@@ -675,3 +675,34 @@ textarea:focus {
   flex: 1;
   padding: 10px 12px;
 }
+
+/* グラフ凡例 */
+.chart-legend {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  margin-bottom: 8px;
+  font-size: 13px;
+  color: #475569;
+}
+
+.chart-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.chart-legend-swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  display: inline-block;
+}
+
+.chart-legend-swatch.helper {
+  background: #3b82f6;
+}
+
+.chart-legend-swatch.helpee {
+  background: #ef4444;
+}

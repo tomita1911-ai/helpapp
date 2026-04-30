@@ -533,6 +533,109 @@
     ctx.stroke();
   }
 
+  function drawCombinedBarChart(canvasId, helperData, helpeeData) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+
+    // データをMapに変換
+    const helperMap = new Map(helperData.map(([n, recs]) => [n, recs.length]));
+    const helpeeMap = new Map(helpeeData.map(([n, recs]) => [n, recs.length]));
+
+    // メンバー名の和集合
+    const allNames = new Set([...helperMap.keys(), ...helpeeMap.keys()]);
+    let entries = [...allNames].map(name => ({
+      name,
+      helperCount: helperMap.get(name) || 0,
+      helpeeCount: helpeeMap.get(name) || 0,
+    }));
+
+    // 合計回数の降順、同数なら名前順
+    entries.sort((a, b) =>
+      (b.helperCount + b.helpeeCount) - (a.helperCount + a.helpeeCount)
+      || a.name.localeCompare(b.name, 'ja')
+    );
+
+    // レイアウト
+    const groupHeight = 40;
+    const barHeight = 14;
+    const barGap = 2;
+    const padding = { top: 16, bottom: 24, left: 110, right: 60 };
+    const chartWidth = Math.max(320, window.innerWidth - 40);
+    const chartHeight = entries.length * groupHeight + padding.top + padding.bottom;
+
+    canvas.width = chartWidth;
+    canvas.height = Math.max(160, chartHeight);
+
+    // 空データ処理
+    if (entries.length === 0) {
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '14px -apple-system, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('データがありません', chartWidth / 2, canvas.height / 2);
+      return;
+    }
+
+    // 共通スケール（helper/helpee両方の最大値）
+    const maxCount = Math.max(
+      1,
+      ...entries.map(e => Math.max(e.helperCount, e.helpeeCount))
+    );
+
+    const innerWidth = chartWidth - padding.left - padding.right;
+
+    // メンバー名（Y軸ラベル）
+    ctx.fillStyle = '#334155';
+    ctx.font = '13px -apple-system, sans-serif';
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
+    for (let i = 0; i < entries.length; i++) {
+      const groupY = padding.top + i * groupHeight;
+      const labelY = groupY + groupHeight / 2;
+      const name = entries[i].name.length > 10
+        ? entries[i].name.substring(0, 10) + '…'
+        : entries[i].name;
+      ctx.fillText(name, padding.left - 10, labelY);
+    }
+
+    // 棒2本ずつ描画
+    for (let i = 0; i < entries.length; i++) {
+      const e = entries[i];
+      const groupY = padding.top + i * groupHeight;
+      const groupCenter = groupY + groupHeight / 2;
+      const helperY = groupCenter - barHeight - barGap / 2;
+      const helpeeY = groupCenter + barGap / 2;
+
+      // 応援（青）
+      const helperWidth = (e.helperCount / maxCount) * innerWidth;
+      ctx.fillStyle = '#3b82f6';
+      ctx.fillRect(padding.left, helperY, helperWidth, barHeight);
+
+      // 依頼（赤）
+      const helpeeWidth = (e.helpeeCount / maxCount) * innerWidth;
+      ctx.fillStyle = '#ef4444';
+      ctx.fillRect(padding.left, helpeeY, helpeeWidth, barHeight);
+
+      // 数字ラベル
+      ctx.fillStyle = '#1e293b';
+      ctx.font = 'bold 12px -apple-system, sans-serif';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(e.helperCount, padding.left + helperWidth + 6, helperY + barHeight / 2);
+      ctx.fillText(e.helpeeCount, padding.left + helpeeWidth + 6, helpeeY + barHeight / 2);
+    }
+
+    // 軸線
+    ctx.strokeStyle = '#e2e8f0';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(padding.left, padding.top);
+    ctx.lineTo(padding.left, canvas.height - padding.bottom);
+    ctx.lineTo(chartWidth - padding.right, canvas.height - padding.bottom);
+    ctx.stroke();
+  }
+
   // ========================================
   // 集計タブ
   // ========================================
@@ -551,12 +654,13 @@
     // ヘルプした回数（応援者別）
     const helperData = countByWithRecords(filtered, 'helper');
     renderStatsTable('stats-helper', helperData, '応援者', '回数', 'helper');
-    drawBarChart('chart-helper', helperData);
 
     // ヘルプされた回数（依頼者別）
     const helpeeData = countByWithRecords(filtered, 'helpee');
     renderStatsTable('stats-helpee', helpeeData, '依頼者', '回数', 'helpee');
-    drawBarChart('chart-helpee', helpeeData);
+
+    // 統合グラフ
+    drawCombinedBarChart('chart-combined', helperData, helpeeData);
 
     // 月フィルター更新
     const months = new Set();
