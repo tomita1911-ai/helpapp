@@ -568,16 +568,20 @@
       helpeeCount: helpeeMap.get(name) || 0,
     }));
 
-    // レイアウト（数字を見やすく拡大）
-    const groupHeight = 52;
-    const barHeight = 20;
-    const barGap = 3;
-    const padding = { top: 20, bottom: 28, left: 110, right: 80 };
-    const chartWidth = Math.max(320, window.innerWidth - 40);
+    // レイアウト（最大化して誰でも見やすく）
+    const groupHeight = 84;
+    const barHeight = 32;
+    const barGap = 6;
+    const padding = { top: 28, bottom: 36, left: 140, right: 110 };
+    const chartWidth = Math.max(380, window.innerWidth - 32);
     const chartHeight = entries.length * groupHeight + padding.top + padding.bottom;
 
     canvas.width = chartWidth;
-    canvas.height = Math.max(160, chartHeight);
+    canvas.height = Math.max(240, chartHeight);
+
+    // 背景を白にして読みやすく
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // 空データ処理
     if (entries.length === 0) {
@@ -596,9 +600,9 @@
 
     const innerWidth = chartWidth - padding.left - padding.right;
 
-    // メンバー名（Y軸ラベル）
-    ctx.fillStyle = '#334155';
-    ctx.font = '14px -apple-system, sans-serif';
+    // メンバー名（Y軸ラベル）- 大きく太字で読みやすく
+    ctx.fillStyle = '#1e293b';
+    ctx.font = 'bold 18px -apple-system, sans-serif';
     ctx.textAlign = 'right';
     ctx.textBaseline = 'middle';
     for (let i = 0; i < entries.length; i++) {
@@ -607,7 +611,7 @@
       const name = entries[i].name.length > 10
         ? entries[i].name.substring(0, 10) + '…'
         : entries[i].name;
-      ctx.fillText(name, padding.left - 10, labelY);
+      ctx.fillText(name, padding.left - 14, labelY);
     }
 
     // 棒2本ずつ描画
@@ -618,33 +622,50 @@
       const helperY = groupCenter - barHeight - barGap / 2;
       const helpeeY = groupCenter + barGap / 2;
 
-      // 応援（青）
+      // 応援（青）- 角丸風に上下を少し丸く
       const helperWidth = (e.helperCount / maxCount) * innerWidth;
-      ctx.fillStyle = '#3b82f6';
+      ctx.fillStyle = '#2563eb';
       ctx.fillRect(padding.left, helperY, helperWidth, barHeight);
 
       // 依頼（赤）
       const helpeeWidth = (e.helpeeCount / maxCount) * innerWidth;
-      ctx.fillStyle = '#ef4444';
+      ctx.fillStyle = '#dc2626';
       ctx.fillRect(padding.left, helpeeY, helpeeWidth, barHeight);
 
-      // 数字ラベル（大きく・白アウトライン付き太字）
-      ctx.font = 'bold 17px -apple-system, sans-serif';
+      // 数字ラベル（特大・白背景ボックス付きで誰でもクッキリ読める）
+      ctx.font = 'bold 26px -apple-system, sans-serif';
       ctx.textAlign = 'left';
       ctx.textBaseline = 'middle';
-      ctx.lineWidth = 4;
-      ctx.strokeStyle = 'rgba(255,255,255,0.95)';
-      ctx.fillStyle = '#0f172a';
 
-      const helperLabelX = padding.left + helperWidth + 8;
-      const helperLabelY = helperY + barHeight / 2;
-      ctx.strokeText(e.helperCount, helperLabelX, helperLabelY);
-      ctx.fillText(e.helperCount, helperLabelX, helperLabelY);
+      const drawValueLabel = (value, barRight, barCenterY) => {
+        const text = String(value);
+        const textWidth = ctx.measureText(text).width;
+        const boxX = barRight + 8;
+        const boxY = barCenterY - 16;
+        const boxW = textWidth + 12;
+        const boxH = 32;
 
-      const helpeeLabelX = padding.left + helpeeWidth + 8;
-      const helpeeLabelY = helpeeY + barHeight / 2;
-      ctx.strokeText(e.helpeeCount, helpeeLabelX, helpeeLabelY);
-      ctx.fillText(e.helpeeCount, helpeeLabelX, helpeeLabelY);
+        // 白い角丸背景ボックス
+        ctx.fillStyle = '#ffffff';
+        ctx.strokeStyle = '#cbd5e1';
+        ctx.lineWidth = 1;
+        if (typeof ctx.roundRect === 'function') {
+          ctx.beginPath();
+          ctx.roundRect(boxX, boxY, boxW, boxH, 6);
+          ctx.fill();
+          ctx.stroke();
+        } else {
+          ctx.fillRect(boxX, boxY, boxW, boxH);
+          ctx.strokeRect(boxX, boxY, boxW, boxH);
+        }
+
+        // 黒い太字数字
+        ctx.fillStyle = '#0f172a';
+        ctx.fillText(text, boxX + 6, barCenterY);
+      };
+
+      drawValueLabel(e.helperCount, padding.left + helperWidth, helperY + barHeight / 2);
+      drawValueLabel(e.helpeeCount, padding.left + helpeeWidth, helpeeY + barHeight / 2);
     }
 
     // 軸線
@@ -845,14 +866,27 @@
       wb.creator = 'ヘルプ管理アプリ';
       wb.created = new Date();
 
-      // --- Sheet 1: グラフ ---
-      const chartSheet = wb.addWorksheet('グラフ');
+      // --- Sheet 1: グラフ（グリッド非表示・1ページにフィット）---
+      const chartSheet = wb.addWorksheet('グラフ', {
+        views: [{ showGridLines: false }],
+        pageSetup: {
+          orientation: 'landscape',
+          paperSize: 9,
+          fitToPage: true,
+          fitToWidth: 1,
+          fitToHeight: 1,
+          margins: {
+            left: 0.4, right: 0.4, top: 0.5, bottom: 0.5,
+            header: 0.3, footer: 0.3,
+          },
+        },
+      });
       chartSheet.getCell('A1').value = 'メンバー別ヘルプ回数（応援／依頼）';
-      chartSheet.getCell('A1').font = { bold: true, size: 14 };
+      chartSheet.getCell('A1').font = { bold: true, size: 16 };
       chartSheet.getCell('A2').value = `期間: ${monthLabel}`;
-      chartSheet.getCell('A2').font = { size: 11 };
+      chartSheet.getCell('A2').font = { size: 12 };
       chartSheet.getCell('A3').value = '青：応援した回数 ／ 赤：依頼した回数';
-      chartSheet.getCell('A3').font = { size: 10, color: { argb: 'FF475569' } };
+      chartSheet.getCell('A3').font = { size: 11, color: { argb: 'FF475569' } };
 
       const imageId = wb.addImage({ base64: pngBase64, extension: 'png' });
       chartSheet.addImage(imageId, {
