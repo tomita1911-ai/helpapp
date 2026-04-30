@@ -560,7 +560,7 @@
     }, options.fonts || {});
     const nameMaxChars = options.nameMaxChars != null ? options.nameMaxChars : 10;
     const minHeight = options.minHeight != null ? options.minHeight : 240;
-    const totalColWidth = options.totalColWidth != null ? options.totalColWidth : 130;
+    const totalColWidth = options.totalColWidth != null ? options.totalColWidth : 180;
 
     // データをMapに変換
     const helperMap = new Map(helperData.map(([n, recs]) => [n, recs.length]));
@@ -621,16 +621,19 @@
     const barLabelReserve = options.barLabelReserve != null ? options.barLabelReserve : 70;
     const barAreaWidth = Math.max(60, innerWidth - barLabelReserve);
 
-    // ヘッダー：「応援」「依頼」を別々に
+    // ヘッダー：「応援」「依頼」「合計」の3列
     ctx.font = fonts.header;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'bottom';
-    const helperHeaderX = totalColX + totalColWidth * 0.25;
-    const helpeeHeaderX = totalColX + totalColWidth * 0.75;
+    const helperHeaderX = totalColX + totalColWidth * (1 / 6);
+    const helpeeHeaderX = totalColX + totalColWidth * (3 / 6);
+    const sumHeaderX = totalColX + totalColWidth * (5 / 6);
     ctx.fillStyle = '#2563eb';
     ctx.fillText('応援', helperHeaderX, padding.top - 4);
     ctx.fillStyle = '#dc2626';
     ctx.fillText('依頼', helpeeHeaderX, padding.top - 4);
+    ctx.fillStyle = '#475569';
+    ctx.fillText('合計', sumHeaderX, padding.top - 4);
 
     // メンバー名（Y軸ラベル）
     ctx.fillStyle = '#1e293b';
@@ -702,7 +705,7 @@
       drawValueLabel(e.helperCount, padding.left + helperWidth, helperY + barHeight / 2);
       drawValueLabel(e.helpeeCount, padding.left + helpeeWidth, helpeeY + barHeight / 2);
 
-      // 応援数と依頼数を別々に表示（青と赤で色分け）
+      // 応援・依頼・合計を3列で表示
       ctx.font = fonts.total;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
@@ -710,6 +713,8 @@
       ctx.fillText(String(e.helperCount), helperHeaderX, groupCenter);
       ctx.fillStyle = '#dc2626';
       ctx.fillText(String(e.helpeeCount), helpeeHeaderX, groupCenter);
+      ctx.fillStyle = '#0f172a';
+      ctx.fillText(String(e.helperCount + e.helpeeCount), sumHeaderX, groupCenter);
     }
 
     // 軸線（左、下、合計列との境界線）
@@ -926,7 +931,7 @@
         },
         nameMaxChars: 16,
         minHeight: 200,
-        totalColWidth: 150,
+        totalColWidth: 210,
       });
       const pngDataUrl = excelCanvas.toDataURL('image/png');
       const pngBase64 = pngDataUrl.split(',')[1];
@@ -1195,7 +1200,7 @@
       },
       nameMaxChars: 14,
       minHeight: 280,
-      totalColWidth: 150,
+      totalColWidth: 210,
     });
   }
 

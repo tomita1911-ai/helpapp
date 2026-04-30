@@ -1,8 +1,8 @@
-const CACHE_NAME = 'help-mgr-v11';
+const CACHE_NAME = 'help-mgr-v12';
 const ASSETS = [
   './index.html',
   './style.css?v=9',
-  './app.js?v=15',
+  './app.js?v=16',
   './manifest.json',
   './lib/jspdf.min.js',
   './lib/html2canvas.min.js',
