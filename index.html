@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+  <meta name="googlebot" content="noindex, nofollow">
+  <meta name="bingbot" content="noindex, nofollow">
+  <meta name="referrer" content="no-referrer">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#1e40af">
+  <title>ヘルプ管理</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="stylesheet" href="style.css?v=6">
+</head>
+<body>
+  <div id="app">
+    <header class="header">
+      <h1>ヘルプ管理</h1>
+    </header>
+
+    <nav class="tab-nav">
+      <button class="tab-btn active" data-tab="parse">取り込み</button>
+      <button class="tab-btn" data-tab="history">履歴</button>
+      <button class="tab-btn" data-tab="stats">集計</button>
+      <button class="tab-btn" data-tab="settings">設定</button>
+    </nav>
+
+    <!-- 取り込みタブ -->
+    <section id="tab-parse" class="tab-content active">
+      <div class="form-card">
+        <h2>Outlook予定を貼り付け</h2>
+        <label>日付</label>
+        <input type="date" id="parse-date">
+        <label>予定テキスト</label>
+        <textarea id="outlook-text" rows="10" placeholder="Outlookの予定表テキストをここに貼り付け"></textarea>
+        <button type="button" id="parse-btn" class="btn-primary">解析する</button>
+      </div>
+
+      <div id="parse-result" class="form-card" style="display:none">
+        <h2>検出されたヘルプ</h2>
+        <div id="parse-list"></div>
+        <button type="button" id="save-parsed-btn" class="btn-primary">この内容で保存</button>
+      </div>
+    </section>
+
+    <!-- 履歴タブ -->
+    <section id="tab-history" class="tab-content">
+      <div class="filter-bar">
+        <h2>ヘルプ履歴</h2>
+        <div class="filter-row">
+          <select id="filter-member">
+            <option value="">全メンバー</option>
+          </select>
+          <select id="filter-month">
+            <option value="">全期間</option>
+          </select>
+        </div>
+      </div>
+      <div id="history-list" class="history-list"></div>
+      <p id="history-empty" class="empty-msg" style="display:none">データがありません</p>
+    </section>
+
+    <!-- 集計タブ -->
+    <section id="tab-stats" class="tab-content">
+      <h2>月別サマリー</h2>
+      <div class="filter-row">
+        <select id="stats-month">
+          <option value="">全期間</option>
+        </select>
+      </div>
+
+      <div id="stats-summary" class="summary-card"></div>
+
+      <div class="stats-section">
+        <h3>ヘルプに行った回数（応援者別）</h3>
+        <div class="stats-chart-container">
+          <canvas id="chart-helper" class="stats-chart-canvas" height="200"></canvas>
+        </div>
+        <div id="stats-helper" class="stats-table-wrap"></div>
+      </div>
+
+      <div class="stats-section">
+        <h3>ヘルプを依頼した回数（依頼者別）</h3>
+        <div class="stats-chart-container">
+          <canvas id="chart-helpee" class="stats-chart-canvas" height="200"></canvas>
+        </div>
+        <div id="stats-helpee" class="stats-table-wrap"></div>
+      </div>
+
+      <div class="stats-section">
+        <h3>データエクスポート</h3>
+        <div class="button-group">
+          <button type="button" id="export-csv-btn" class="btn-secondary">CSV出力</button>
+          <button type="button" id="export-excel-btn" class="btn-secondary">Excel出力</button>
+          <button type="button" id="export-pdf-btn" class="btn-secondary">PDF出力</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 設定タブ -->
+    <section id="tab-settings" class="tab-content">
+      <div class="form-card">
+        <h2>メンバー管理</h2>
+        <p class="hint">括弧内の名前を正しく認識するために、メンバーを登録してください。</p>
+        <div class="inline-add">
+          <input type="text" id="new-member" placeholder="メンバー名を入力（例: 鈴木）">
+          <button type="button" id="add-member-btn" class="btn-small">追加</button>
+        </div>
+        <ul id="member-list" class="item-list"></ul>
+      </div>
+
+      <div class="form-card">
+        <h2>データ管理</h2>
+        <button type="button" id="export-btn" class="btn-secondary">データをエクスポート（JSON）</button>
+        <button type="button" id="import-btn" class="btn-secondary">データをインポート</button>
+        <input type="file" id="import-file" accept=".json" style="display:none">
+        <button type="button" id="clear-btn" class="btn-danger">全データ削除</button>
+      </div>
+    </section>
+  </div>
+
+  <!-- トースト通知 -->
+  <div id="toast" class="toast"></div>
+
+  <script src="lib/jspdf.min.js"></script>
+  <script src="lib/html2canvas.min.js"></script>
+  <script src="lib/xlsx.min.js"></script>
+  <script src="app.js?v=9"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js');
+    }
+  </script>
+</body>
+</html>

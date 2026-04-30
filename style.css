@@ -1,0 +1,677 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', sans-serif;
+  background: #f0f4f8;
+  color: #1a202c;
+  font-size: 15px;
+  min-height: 100vh;
+  -webkit-text-size-adjust: 100%;
+}
+
+#app {
+  max-width: 480px;
+  margin: 0 auto;
+  padding-bottom: 80px;
+}
+
+/* ヘッダー */
+.header {
+  background: #1e40af;
+  color: #fff;
+  padding: 14px 16px;
+  text-align: center;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header h1 {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+/* タブナビゲーション */
+.tab-nav {
+  display: flex;
+  background: #fff;
+  border-bottom: 1px solid #e2e8f0;
+  position: sticky;
+  top: 46px;
+  z-index: 99;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 12px 4px;
+  border: none;
+  background: none;
+  font-size: 13px;
+  font-weight: 500;
+  color: #64748b;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+}
+
+.tab-btn.active {
+  color: #1e40af;
+  border-bottom-color: #1e40af;
+  font-weight: 600;
+}
+
+/* タブコンテンツ */
+.tab-content {
+  display: none;
+  padding: 16px;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+/* カード */
+.form-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+.form-card h2 {
+  font-size: 17px;
+  margin-bottom: 16px;
+  color: #1e293b;
+}
+
+.form-card h3 {
+  font-size: 15px;
+  margin-bottom: 8px;
+  color: #334155;
+}
+
+/* フォーム要素 */
+label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #475569;
+  margin-bottom: 6px;
+  margin-top: 14px;
+}
+
+label:first-of-type {
+  margin-top: 0;
+}
+
+input[type="date"],
+input[type="text"],
+select,
+textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 15px;
+  background: #fff;
+  color: #1a202c;
+  -webkit-appearance: none;
+}
+
+textarea {
+  resize: vertical;
+  font-family: inherit;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+}
+
+.hint {
+  font-size: 12px;
+  color: #94a3b8;
+  margin-bottom: 12px;
+}
+
+/* インライン追加 */
+.inline-add {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.inline-add input {
+  flex: 1;
+}
+
+/* ボタン */
+.btn-primary {
+  display: block;
+  width: 100%;
+  padding: 14px;
+  background: #1e40af;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 20px;
+  transition: background 0.2s;
+}
+
+.btn-primary:active {
+  background: #1e3a8a;
+}
+
+.btn-secondary {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  background: #e2e8f0;
+  color: #334155;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: background 0.2s;
+}
+
+.btn-secondary:active {
+  background: #cbd5e1;
+}
+
+.btn-danger {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.btn-danger:active {
+  background: #fee2e2;
+}
+
+.btn-small {
+  padding: 10px 16px;
+  background: #1e40af;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+/* メンバーリスト */
+.item-list {
+  list-style: none;
+  margin-top: 12px;
+}
+
+.item-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.item-list li:last-child {
+  border-bottom: none;
+}
+
+.item-list .delete-btn {
+  background: none;
+  border: none;
+  color: #ef4444;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 4px 8px;
+}
+
+/* フィルターバー */
+.filter-bar {
+  margin-bottom: 12px;
+}
+
+.filter-bar h2 {
+  font-size: 17px;
+  margin-bottom: 12px;
+}
+
+.filter-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.filter-row select {
+  flex: 1;
+}
+
+/* 履歴リスト */
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.history-item {
+  background: #fff;
+  border-radius: 10px;
+  padding: 14px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+.history-date {
+  font-size: 12px;
+  color: #64748b;
+  margin-bottom: 6px;
+}
+
+.history-main {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 4px;
+}
+
+.history-detail {
+  font-size: 13px;
+  color: #64748b;
+}
+
+.history-item .delete-btn {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 2px 6px;
+}
+
+.history-actions {
+  float: right;
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.history-edit-btn {
+  background: #e0e7ff;
+  border: none;
+  color: #1e40af;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.history-edit-btn:active {
+  background: #c7d2fe;
+}
+
+.history-item .edit-date {
+  width: 100%;
+  padding: 8px 10px;
+  margin-bottom: 6px;
+  font-size: 14px;
+}
+
+.edit-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.edit-row .edit-helper,
+.edit-row .edit-helpee {
+  flex: 1;
+  padding: 6px 8px;
+  font-size: 14px;
+  min-width: 0;
+}
+
+.history-item .edit-facility,
+.history-item .edit-product {
+  width: 100%;
+  padding: 6px 8px;
+  font-size: 13px;
+  margin-top: 4px;
+}
+
+.edit-buttons {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.edit-buttons button {
+  flex: 1;
+  padding: 8px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-edit-save {
+  background: #1e40af;
+  color: #fff;
+}
+
+.btn-edit-save:active {
+  background: #1e3a8a;
+}
+
+.btn-edit-cancel {
+  background: #e2e8f0;
+  color: #475569;
+}
+
+.btn-edit-cancel:active {
+  background: #cbd5e1;
+}
+
+/* 解析結果 */
+.parse-item {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+}
+
+.parse-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.parse-row .parse-check {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.parse-row .parse-helper,
+.parse-row .parse-helpee {
+  flex: 1;
+  padding: 6px 8px;
+  font-size: 14px;
+  min-width: 0;
+}
+
+.parse-arrow {
+  font-size: 14px;
+  color: #64748b;
+  flex-shrink: 0;
+}
+
+.parse-item .parse-facility,
+.parse-item .parse-product {
+  width: 100%;
+  padding: 6px 8px;
+  font-size: 13px;
+  margin-top: 4px;
+}
+
+.parse-count {
+  text-align: center;
+  padding: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #1e40af;
+  margin-bottom: 8px;
+}
+
+/* 月別サマリー */
+.summary-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 18px 16px;
+  margin-bottom: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+.summary-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1e40af;
+  margin-bottom: 14px;
+  text-align: center;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.summary-cell {
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: 12px 4px;
+  text-align: center;
+}
+
+.summary-num {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1e40af;
+  line-height: 1.2;
+}
+
+.summary-label {
+  font-size: 11px;
+  color: #64748b;
+  margin-top: 4px;
+}
+
+.summary-top {
+  display: flex;
+  align-items: center;
+  padding: 10px 12px;
+  background: #f0f9ff;
+  border-radius: 8px;
+  margin-top: 8px;
+  gap: 10px;
+}
+
+.summary-top-label {
+  font-size: 12px;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.summary-top-name {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.summary-top-count {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1e40af;
+}
+
+/* 集計 */
+.stats-section {
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+.stats-section h3 {
+  font-size: 14px;
+  color: #475569;
+  margin-bottom: 12px;
+}
+
+.stats-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.stats-table th,
+.stats-table td {
+  text-align: left;
+  padding: 8px 10px;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 14px;
+}
+
+.stats-table th {
+  font-weight: 600;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.stats-table td:last-child {
+  text-align: right;
+  font-weight: 600;
+  color: #1e40af;
+}
+
+.stats-row-clickable {
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.15s;
+}
+
+.stats-row-clickable:active {
+  background: #f1f5f9;
+}
+
+.expand-icon {
+  font-size: 10px;
+  color: #94a3b8;
+  margin-left: 4px;
+  transition: transform 0.2s;
+  display: inline-block;
+}
+
+.stats-row-clickable.expanded .expand-icon {
+  transform: rotate(180deg);
+}
+
+.stats-detail-row td {
+  padding: 0 10px 12px !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+}
+
+.stats-detail-list {
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: 8px 12px;
+}
+
+.stats-detail-item {
+  font-size: 13px;
+  color: #475569;
+  padding: 5px 0;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.stats-detail-item:last-child {
+  border-bottom: none;
+}
+
+.stats-bar {
+  display: inline-block;
+  height: 8px;
+  background: #3b82f6;
+  border-radius: 4px;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+.empty-msg {
+  text-align: center;
+  color: #94a3b8;
+  padding: 40px 16px;
+  font-size: 14px;
+}
+
+/* トースト */
+.toast {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: #1e293b;
+  color: #fff;
+  padding: 12px 24px;
+  border-radius: 10px;
+  font-size: 14px;
+  z-index: 1000;
+  transition: transform 0.3s ease;
+  pointer-events: none;
+}
+
+.toast.show {
+  transform: translateX(-50%) translateY(0);
+}
+
+/* safe area */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  #app {
+    padding-bottom: calc(80px + env(safe-area-inset-bottom));
+  }
+}
+
+/* グラフコンテナ */
+.stats-chart-container {
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+  overflow-x: auto;
+}
+
+.stats-chart-canvas {
+  display: block;
+  margin: 0 auto;
+  max-width: 100%;
+  height: auto;
+}
+
+/* ボタングループ */
+.button-group {
+  display: flex;
+  gap: 8px;
+}
+
+.button-group button {
+  flex: 1;
+  padding: 10px 12px;
+}
