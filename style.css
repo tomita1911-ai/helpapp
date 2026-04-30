@@ -706,3 +706,132 @@ textarea:focus {
 .chart-legend-swatch.helpee {
   background: #ef4444;
 }
+
+/* グラフセクションヘッダー（タイトル + 拡大ボタン） */
+.chart-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.chart-section-header h3 {
+  margin: 0;
+}
+
+/* 拡大アイコンボタン */
+.btn-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
+  color: #334155;
+  font-size: 20px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn-icon:active {
+  background: #e2e8f0;
+}
+
+/* グラフ拡大モーダル */
+.chart-modal {
+  position: fixed;
+  inset: 0;
+  display: none;
+  z-index: 2000;
+}
+
+.chart-modal.open {
+  display: block;
+}
+
+.chart-modal-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.65);
+}
+
+.chart-modal-content {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  right: 16px;
+  bottom: 16px;
+  background: #fff;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.chart-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid #e2e8f0;
+  flex-shrink: 0;
+}
+
+.chart-modal-header h3 {
+  margin: 0;
+  font-size: 16px;
+  color: #1e293b;
+}
+
+.chart-modal-close {
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: transparent;
+  font-size: 28px;
+  line-height: 1;
+  color: #64748b;
+  cursor: pointer;
+  border-radius: 8px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.chart-modal-close:active {
+  background: #f1f5f9;
+}
+
+.chart-modal .chart-legend {
+  padding: 8px 16px 0;
+  flex-shrink: 0;
+}
+
+.chart-modal-body {
+  flex: 1;
+  overflow: auto;
+  padding: 8px 12px 16px;
+  background: #fff;
+}
+
+.chart-modal-body canvas {
+  display: block;
+  margin: 0 auto;
+  max-width: 100%;
+}
+
+/* iOS safe-area対応 */
+@supports (padding: env(safe-area-inset-top)) {
+  .chart-modal-content {
+    top: max(16px, env(safe-area-inset-top));
+    bottom: max(16px, env(safe-area-inset-bottom));
+  }
+}
+
+/* モーダル開いている間は背景スクロール抑止 */
+body.modal-open {
+  overflow: hidden;
+}

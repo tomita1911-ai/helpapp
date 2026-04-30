@@ -13,7 +13,7 @@
   <title>ヘルプ管理</title>
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="icon-192.png">
-  <link rel="stylesheet" href="style.css?v=8">
+  <link rel="stylesheet" href="style.css?v=9">
 </head>
 <body>
   <div id="app">
@@ -75,7 +75,10 @@
       <div id="stats-summary" class="summary-card"></div>
 
       <div class="stats-section">
-        <h3>メンバー別ヘルプ回数（応援／依頼）</h3>
+        <div class="chart-section-header">
+          <h3>メンバー別ヘルプ回数（応援／依頼）</h3>
+          <button type="button" id="chart-expand-btn" class="btn-icon" aria-label="グラフを拡大">⛶</button>
+        </div>
         <div class="chart-legend">
           <span class="chart-legend-item"><span class="chart-legend-swatch helper"></span>応援した</span>
           <span class="chart-legend-item"><span class="chart-legend-swatch helpee"></span>依頼した</span>
@@ -130,10 +133,28 @@
   <!-- トースト通知 -->
   <div id="toast" class="toast"></div>
 
+  <!-- グラフ拡大モーダル -->
+  <div id="chart-modal" class="chart-modal" aria-hidden="true" role="dialog">
+    <div class="chart-modal-overlay" data-modal-close></div>
+    <div class="chart-modal-content">
+      <div class="chart-modal-header">
+        <h3>メンバー別ヘルプ回数（応援／依頼）</h3>
+        <button type="button" id="chart-modal-close" class="chart-modal-close" aria-label="閉じる" data-modal-close>×</button>
+      </div>
+      <div class="chart-legend">
+        <span class="chart-legend-item"><span class="chart-legend-swatch helper"></span>応援した</span>
+        <span class="chart-legend-item"><span class="chart-legend-swatch helpee"></span>依頼した</span>
+      </div>
+      <div class="chart-modal-body">
+        <canvas id="chart-modal-canvas"></canvas>
+      </div>
+    </div>
+  </div>
+
   <script src="lib/jspdf.min.js"></script>
   <script src="lib/html2canvas.min.js"></script>
   <script src="lib/exceljs.min.js"></script>
-  <script src="app.js?v=12"></script>
+  <script src="app.js?v=13"></script>
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('./sw.js');

@@ -533,11 +533,31 @@
     ctx.stroke();
   }
 
-  function drawCombinedBarChart(canvasId, helperData, helpeeData) {
-    const canvas = document.getElementById(canvasId);
+  function drawCombinedBarChart(target, helperData, helpeeData, options) {
+    options = options || {};
+    const canvas = typeof target === 'string'
+      ? document.getElementById(target)
+      : target;
     if (!canvas) return;
 
     const ctx = canvas.getContext('2d');
+
+    // options（省略時は通常表示用デフォルト）
+    const groupHeight = options.groupHeight != null ? options.groupHeight : 84;
+    const barHeight = options.barHeight != null ? options.barHeight : 32;
+    const barGap = options.barGap != null ? options.barGap : 6;
+    const padding = options.padding || { top: 28, bottom: 36, left: 140, right: 110 };
+    const chartWidth = options.width != null
+      ? options.width
+      : Math.max(380, window.innerWidth - 32);
+    const fonts = Object.assign({
+      name: 'bold 18px -apple-system, sans-serif',
+      value: 'bold 26px -apple-system, sans-serif',
+      valueBoxHeight: 32,
+      valueBoxRadius: 6,
+    }, options.fonts || {});
+    const nameMaxChars = options.nameMaxChars != null ? options.nameMaxChars : 10;
+    const minHeight = options.minHeight != null ? options.minHeight : 240;
 
     // データをMapに変換
     const helperMap = new Map(helperData.map(([n, recs]) => [n, recs.length]));
@@ -557,7 +577,6 @@
         allNames.delete(name);
       }
     }
-    // 未登録メンバー（(不明)など）は最後に追加
     for (const name of allNames) {
       orderedNames.push(name);
     }
@@ -568,16 +587,10 @@
       helpeeCount: helpeeMap.get(name) || 0,
     }));
 
-    // レイアウト（最大化して誰でも見やすく）
-    const groupHeight = 84;
-    const barHeight = 32;
-    const barGap = 6;
-    const padding = { top: 28, bottom: 36, left: 140, right: 110 };
-    const chartWidth = Math.max(380, window.innerWidth - 32);
     const chartHeight = entries.length * groupHeight + padding.top + padding.bottom;
 
     canvas.width = chartWidth;
-    canvas.height = Math.max(240, chartHeight);
+    canvas.height = Math.max(minHeight, chartHeight);
 
     // 背景を白にして読みやすく
     ctx.fillStyle = '#ffffff';
@@ -592,7 +605,7 @@
       return;
     }
 
-    // 共通スケール（helper/helpee両方の最大値）
+    // 共通スケール
     const maxCount = Math.max(
       1,
       ...entries.map(e => Math.max(e.helperCount, e.helpeeCount))
@@ -600,21 +613,24 @@
 
     const innerWidth = chartWidth - padding.left - padding.right;
 
-    // メンバー名（Y軸ラベル）- 大きく太字で読みやすく
+    // メンバー名（Y軸ラベル）
     ctx.fillStyle = '#1e293b';
-    ctx.font = 'bold 18px -apple-system, sans-serif';
+    ctx.font = fonts.name;
     ctx.textAlign = 'right';
     ctx.textBaseline = 'middle';
     for (let i = 0; i < entries.length; i++) {
       const groupY = padding.top + i * groupHeight;
       const labelY = groupY + groupHeight / 2;
-      const name = entries[i].name.length > 10
-        ? entries[i].name.substring(0, 10) + '…'
+      const name = entries[i].name.length > nameMaxChars
+        ? entries[i].name.substring(0, nameMaxChars) + '…'
         : entries[i].name;
       ctx.fillText(name, padding.left - 14, labelY);
     }
 
     // 棒2本ずつ描画
+    const valueBoxHeight = fonts.valueBoxHeight;
+    const valueBoxRadius = fonts.valueBoxRadius;
+
     for (let i = 0; i < entries.length; i++) {
       const e = entries[i];
       const groupY = padding.top + i * groupHeight;
@@ -622,7 +638,7 @@
       const helperY = groupCenter - barHeight - barGap / 2;
       const helpeeY = groupCenter + barGap / 2;
 
-      // 応援（青）- 角丸風に上下を少し丸く
+      // 応援（青）
       const helperWidth = (e.helperCount / maxCount) * innerWidth;
       ctx.fillStyle = '#2563eb';
       ctx.fillRect(padding.left, helperY, helperWidth, barHeight);
@@ -632,8 +648,8 @@
       ctx.fillStyle = '#dc2626';
       ctx.fillRect(padding.left, helpeeY, helpeeWidth, barHeight);
 
-      // 数字ラベル（特大・白背景ボックス付きで誰でもクッキリ読める）
-      ctx.font = 'bold 26px -apple-system, sans-serif';
+      // 数字ラベル（白い角丸ボックス + 黒い太字）
+      ctx.font = fonts.value;
       ctx.textAlign = 'left';
       ctx.textBaseline = 'middle';
 
@@ -641,9 +657,9 @@
         const text = String(value);
         const textWidth = ctx.measureText(text).width;
         const boxX = barRight + 8;
-        const boxY = barCenterY - 16;
+        const boxY = barCenterY - valueBoxHeight / 2;
         const boxW = textWidth + 12;
-        const boxH = 32;
+        const boxH = valueBoxHeight;
 
         // 白い角丸背景ボックス
         ctx.fillStyle = '#ffffff';
@@ -651,7 +667,7 @@
         ctx.lineWidth = 1;
         if (typeof ctx.roundRect === 'function') {
           ctx.beginPath();
-          ctx.roundRect(boxX, boxY, boxW, boxH, 6);
+          ctx.roundRect(boxX, boxY, boxW, boxH, valueBoxRadius);
           ctx.fill();
           ctx.stroke();
         } else {
@@ -855,10 +871,25 @@
       const helperData = countByWithRecords(filtered, 'helper');
       const helpeeData = countByWithRecords(filtered, 'helpee');
 
-      // グラフを再描画してPNG取得（集計タブが未表示でも確実に取得）
-      drawCombinedBarChart('chart-combined', helperData, helpeeData);
-      const canvas = document.getElementById('chart-combined');
-      const pngDataUrl = canvas.toDataURL('image/png');
+      // Excel用：A4横向き1ページに収まる固定サイズで動的に描画
+      // 画面幅に依存しないため、PCで開いた時に常に同じ大きさで表示
+      const excelCanvas = document.createElement('canvas');
+      drawCombinedBarChart(excelCanvas, helperData, helpeeData, {
+        width: 1040,
+        groupHeight: 70,
+        barHeight: 26,
+        barGap: 5,
+        padding: { top: 28, bottom: 36, left: 200, right: 140 },
+        fonts: {
+          name: 'bold 18px -apple-system, sans-serif',
+          value: 'bold 24px -apple-system, sans-serif',
+          valueBoxHeight: 30,
+          valueBoxRadius: 6,
+        },
+        nameMaxChars: 16,
+        minHeight: 200,
+      });
+      const pngDataUrl = excelCanvas.toDataURL('image/png');
       const pngBase64 = pngDataUrl.split(',')[1];
 
       // ExcelJS Workbook 生成
@@ -891,7 +922,7 @@
       const imageId = wb.addImage({ base64: pngBase64, extension: 'png' });
       chartSheet.addImage(imageId, {
         tl: { col: 0, row: 4 },
-        ext: { width: canvas.width, height: canvas.height },
+        ext: { width: excelCanvas.width, height: excelCanvas.height },
       });
 
       // --- Sheet 2: 応援者別 ---
@@ -1083,6 +1114,89 @@
     });
   }
 
+  // ========================================
+  // グラフ拡大モーダル
+  // ========================================
+  function openChartModal() {
+    const modal = document.getElementById('chart-modal');
+    const canvas = document.getElementById('chart-modal-canvas');
+    if (!modal || !canvas) return;
+
+    // 現在のフィルター状態でデータ取得
+    const records = getRecords();
+    const monthFilter = document.getElementById('stats-month').value;
+    const filtered = monthFilter
+      ? records.filter(r => r.date && r.date.startsWith(monthFilter))
+      : records;
+    const helperData = countByWithRecords(filtered, 'helper');
+    const helpeeData = countByWithRecords(filtered, 'helpee');
+
+    // モーダルを表示してから幅を計算
+    modal.classList.add('open');
+    document.body.classList.add('modal-open');
+    modal.setAttribute('aria-hidden', 'false');
+
+    const body = modal.querySelector('.chart-modal-body');
+    const availableWidth = Math.max(360, body.clientWidth - 24);
+
+    // モーダル用に大きく描画
+    drawCombinedBarChart(canvas, helperData, helpeeData, {
+      width: availableWidth,
+      groupHeight: 100,
+      barHeight: 38,
+      barGap: 6,
+      padding: { top: 32, bottom: 40, left: 160, right: 130 },
+      fonts: {
+        name: 'bold 22px -apple-system, sans-serif',
+        value: 'bold 32px -apple-system, sans-serif',
+        valueBoxHeight: 40,
+        valueBoxRadius: 8,
+      },
+      nameMaxChars: 14,
+      minHeight: 280,
+    });
+  }
+
+  function closeChartModal() {
+    const modal = document.getElementById('chart-modal');
+    if (!modal) return;
+    modal.classList.remove('open');
+    document.body.classList.remove('modal-open');
+    modal.setAttribute('aria-hidden', 'true');
+  }
+
+  function initChartModal() {
+    const expandBtn = document.getElementById('chart-expand-btn');
+    if (expandBtn) {
+      expandBtn.addEventListener('click', openChartModal);
+    }
+
+    // 閉じる：×ボタン、オーバーレイクリック
+    document.querySelectorAll('[data-modal-close]').forEach(el => {
+      el.addEventListener('click', closeChartModal);
+    });
+
+    // Escキー
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        const modal = document.getElementById('chart-modal');
+        if (modal && modal.classList.contains('open')) {
+          closeChartModal();
+        }
+      }
+    });
+
+    // 画面回転・リサイズ時に再描画
+    let resizeTimer = null;
+    window.addEventListener('resize', () => {
+      const modal = document.getElementById('chart-modal');
+      if (modal && modal.classList.contains('open')) {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => openChartModal(), 150);
+      }
+    });
+  }
+
   function initExportButtons() {
     const csvBtn = document.getElementById('export-csv-btn');
     const excelBtn = document.getElementById('export-excel-btn');
@@ -1216,6 +1330,7 @@
     loadDraft();
     initHistoryFilters();
     initStatsFilter();
+    initChartModal();
     initExportButtons();
     initSettings();
     renderSettings();
