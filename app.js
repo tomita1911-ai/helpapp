@@ -543,19 +543,30 @@
     const helperMap = new Map(helperData.map(([n, recs]) => [n, recs.length]));
     const helpeeMap = new Map(helpeeData.map(([n, recs]) => [n, recs.length]));
 
+    // メンバー登録順を取得
+    const registeredMembers = getMembers();
+
     // メンバー名の和集合
     const allNames = new Set([...helperMap.keys(), ...helpeeMap.keys()]);
-    let entries = [...allNames].map(name => ({
+
+    // メンバー登録順に並べる：登録済みメンバーを登録順、未登録は最後（出現順）
+    const orderedNames = [];
+    for (const name of registeredMembers) {
+      if (allNames.has(name)) {
+        orderedNames.push(name);
+        allNames.delete(name);
+      }
+    }
+    // 未登録メンバー（(不明)など）は最後に追加
+    for (const name of allNames) {
+      orderedNames.push(name);
+    }
+
+    let entries = orderedNames.map(name => ({
       name,
       helperCount: helperMap.get(name) || 0,
       helpeeCount: helpeeMap.get(name) || 0,
     }));
-
-    // 合計回数の降順、同数なら名前順
-    entries.sort((a, b) =>
-      (b.helperCount + b.helpeeCount) - (a.helperCount + a.helpeeCount)
-      || a.name.localeCompare(b.name, 'ja')
-    );
 
     // レイアウト
     const groupHeight = 40;
