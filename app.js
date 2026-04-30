@@ -553,11 +553,14 @@
     const fonts = Object.assign({
       name: 'bold 18px -apple-system, sans-serif',
       value: 'bold 26px -apple-system, sans-serif',
+      total: 'bold 28px -apple-system, sans-serif',
+      header: 'bold 14px -apple-system, sans-serif',
       valueBoxHeight: 32,
       valueBoxRadius: 6,
     }, options.fonts || {});
     const nameMaxChars = options.nameMaxChars != null ? options.nameMaxChars : 10;
     const minHeight = options.minHeight != null ? options.minHeight : 240;
+    const totalColWidth = options.totalColWidth != null ? options.totalColWidth : 90;
 
     // データをMapに変換
     const helperMap = new Map(helperData.map(([n, recs]) => [n, recs.length]));
@@ -611,7 +614,19 @@
       ...entries.map(e => Math.max(e.helperCount, e.helpeeCount))
     );
 
-    const innerWidth = chartWidth - padding.left - padding.right;
+    // 合計列を確保（グラフエリア右側）
+    const innerWidth = chartWidth - padding.left - padding.right - totalColWidth;
+    const totalColX = chartWidth - padding.right - totalColWidth;
+    // 棒の右に値ラベルが入るスペースを予約（最長棒でも合計列にかぶらないように）
+    const barLabelReserve = options.barLabelReserve != null ? options.barLabelReserve : 70;
+    const barAreaWidth = Math.max(60, innerWidth - barLabelReserve);
+
+    // ヘッダー：「合計」ラベル
+    ctx.fillStyle = '#475569';
+    ctx.font = fonts.header;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'bottom';
+    ctx.fillText('合計', totalColX + totalColWidth / 2, padding.top - 4);
 
     // メンバー名（Y軸ラベル）
     ctx.fillStyle = '#1e293b';
@@ -639,12 +654,12 @@
       const helpeeY = groupCenter + barGap / 2;
 
       // 応援（青）
-      const helperWidth = (e.helperCount / maxCount) * innerWidth;
+      const helperWidth = (e.helperCount / maxCount) * barAreaWidth;
       ctx.fillStyle = '#2563eb';
       ctx.fillRect(padding.left, helperY, helperWidth, barHeight);
 
       // 依頼（赤）
-      const helpeeWidth = (e.helpeeCount / maxCount) * innerWidth;
+      const helpeeWidth = (e.helpeeCount / maxCount) * barAreaWidth;
       ctx.fillStyle = '#dc2626';
       ctx.fillRect(padding.left, helpeeY, helpeeWidth, barHeight);
 
@@ -682,15 +697,31 @@
 
       drawValueLabel(e.helperCount, padding.left + helperWidth, helperY + barHeight / 2);
       drawValueLabel(e.helpeeCount, padding.left + helpeeWidth, helpeeY + barHeight / 2);
+
+      // 合計値を右端に表示（応援+依頼）
+      const total = e.helperCount + e.helpeeCount;
+      ctx.fillStyle = '#0f172a';
+      ctx.font = fonts.total;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(String(total), totalColX + totalColWidth / 2, groupCenter);
     }
 
-    // 軸線
+    // 軸線（左、下、合計列との境界線）
     ctx.strokeStyle = '#e2e8f0';
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(padding.left, padding.top);
     ctx.lineTo(padding.left, canvas.height - padding.bottom);
     ctx.lineTo(chartWidth - padding.right, canvas.height - padding.bottom);
+    ctx.stroke();
+
+    // 合計列の左境界線
+    ctx.beginPath();
+    ctx.strokeStyle = '#cbd5e1';
+    ctx.lineWidth = 1;
+    ctx.moveTo(totalColX, padding.top);
+    ctx.lineTo(totalColX, canvas.height - padding.bottom);
     ctx.stroke();
   }
 
@@ -879,15 +910,18 @@
         groupHeight: 70,
         barHeight: 26,
         barGap: 5,
-        padding: { top: 28, bottom: 36, left: 200, right: 140 },
+        padding: { top: 36, bottom: 36, left: 200, right: 30 },
         fonts: {
           name: 'bold 18px -apple-system, sans-serif',
           value: 'bold 24px -apple-system, sans-serif',
+          total: 'bold 26px -apple-system, sans-serif',
+          header: 'bold 14px -apple-system, sans-serif',
           valueBoxHeight: 30,
           valueBoxRadius: 6,
         },
         nameMaxChars: 16,
         minHeight: 200,
+        totalColWidth: 110,
       });
       const pngDataUrl = excelCanvas.toDataURL('image/png');
       const pngBase64 = pngDataUrl.split(',')[1];
@@ -1145,15 +1179,18 @@
       groupHeight: 100,
       barHeight: 38,
       barGap: 6,
-      padding: { top: 32, bottom: 40, left: 160, right: 130 },
+      padding: { top: 40, bottom: 40, left: 160, right: 30 },
       fonts: {
         name: 'bold 22px -apple-system, sans-serif',
         value: 'bold 32px -apple-system, sans-serif',
+        total: 'bold 36px -apple-system, sans-serif',
+        header: 'bold 16px -apple-system, sans-serif',
         valueBoxHeight: 40,
         valueBoxRadius: 8,
       },
       nameMaxChars: 14,
       minHeight: 280,
+      totalColWidth: 110,
     });
   }
 
