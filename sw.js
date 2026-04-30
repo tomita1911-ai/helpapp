@@ -1,12 +1,12 @@
-const CACHE_NAME = 'help-mgr-v6';
+const CACHE_NAME = 'help-mgr-v7';
 const ASSETS = [
   './index.html',
   './style.css?v=8',
-  './app.js?v=10',
+  './app.js?v=11',
   './manifest.json',
   './lib/jspdf.min.js',
   './lib/html2canvas.min.js',
-  './lib/xlsx.min.js',
+  './lib/exceljs.min.js',
 ];
 
 self.addEventListener('install', (e) => {

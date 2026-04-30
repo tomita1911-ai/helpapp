@@ -568,11 +568,11 @@
       helpeeCount: helpeeMap.get(name) || 0,
     }));
 
-    // レイアウト
-    const groupHeight = 40;
-    const barHeight = 14;
-    const barGap = 2;
-    const padding = { top: 16, bottom: 24, left: 110, right: 60 };
+    // レイアウト（数字を見やすく拡大）
+    const groupHeight = 52;
+    const barHeight = 20;
+    const barGap = 3;
+    const padding = { top: 20, bottom: 28, left: 110, right: 80 };
     const chartWidth = Math.max(320, window.innerWidth - 40);
     const chartHeight = entries.length * groupHeight + padding.top + padding.bottom;
 
@@ -598,7 +598,7 @@
 
     // メンバー名（Y軸ラベル）
     ctx.fillStyle = '#334155';
-    ctx.font = '13px -apple-system, sans-serif';
+    ctx.font = '14px -apple-system, sans-serif';
     ctx.textAlign = 'right';
     ctx.textBaseline = 'middle';
     for (let i = 0; i < entries.length; i++) {
@@ -628,13 +628,23 @@
       ctx.fillStyle = '#ef4444';
       ctx.fillRect(padding.left, helpeeY, helpeeWidth, barHeight);
 
-      // 数字ラベル
-      ctx.fillStyle = '#1e293b';
-      ctx.font = 'bold 12px -apple-system, sans-serif';
+      // 数字ラベル（大きく・白アウトライン付き太字）
+      ctx.font = 'bold 17px -apple-system, sans-serif';
       ctx.textAlign = 'left';
       ctx.textBaseline = 'middle';
-      ctx.fillText(e.helperCount, padding.left + helperWidth + 6, helperY + barHeight / 2);
-      ctx.fillText(e.helpeeCount, padding.left + helpeeWidth + 6, helpeeY + barHeight / 2);
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = 'rgba(255,255,255,0.95)';
+      ctx.fillStyle = '#0f172a';
+
+      const helperLabelX = padding.left + helperWidth + 8;
+      const helperLabelY = helperY + barHeight / 2;
+      ctx.strokeText(e.helperCount, helperLabelX, helperLabelY);
+      ctx.fillText(e.helperCount, helperLabelX, helperLabelY);
+
+      const helpeeLabelX = padding.left + helpeeWidth + 8;
+      const helpeeLabelY = helpeeY + barHeight / 2;
+      ctx.strokeText(e.helpeeCount, helpeeLabelX, helpeeLabelY);
+      ctx.fillText(e.helpeeCount, helpeeLabelX, helpeeLabelY);
     }
 
     // 軸線
@@ -802,52 +812,12 @@
     });
   }
 
-  function generateExcelData(helperData, helpeeData, monthLabel) {
-    if (typeof XLSX === 'undefined') {
-      throw new Error('SheetJSライブラリが読み込まれていません');
+  async function downloadExcel() {
+    if (typeof ExcelJS === 'undefined') {
+      showToast('Excelライブラリが読み込まれていません');
+      return;
     }
 
-    // Sheet1: 応援者別
-    const helperSheetData = [
-      ['応援者別ヘルプ統計'],
-      ['期間', monthLabel],
-      [],
-      ['メンバー', '回数'],
-    ];
-
-    for (const [name, records] of helperData) {
-      helperSheetData.push([name, records.length]);
-    }
-
-    // Sheet2: 依頼者別
-    const helpeeSheetData = [
-      ['依頼者別ヘルプ統計'],
-      ['期間', monthLabel],
-      [],
-      ['メンバー', '回数'],
-    ];
-
-    for (const [name, records] of helpeeData) {
-      helpeeSheetData.push([name, records.length]);
-    }
-
-    // ワークシート生成
-    const ws1 = XLSX.utils.aoa_to_sheet(helperSheetData);
-    const ws2 = XLSX.utils.aoa_to_sheet(helpeeSheetData);
-
-    // セル幅の自動調整
-    ws1['!cols'] = [{wch: 20}, {wch: 10}];
-    ws2['!cols'] = [{wch: 20}, {wch: 10}];
-
-    // ワークブック生成
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws1, '応援者別');
-    XLSX.utils.book_append_sheet(wb, ws2, '依頼者別');
-
-    return wb;
-  }
-
-  function downloadExcel() {
     const records = getRecords();
     const monthFilter = document.getElementById('stats-month').value;
 
@@ -864,10 +834,72 @@
       const helperData = countByWithRecords(filtered, 'helper');
       const helpeeData = countByWithRecords(filtered, 'helpee');
 
-      const wb = generateExcelData(helperData, helpeeData, monthLabel);
-      const filename = `help-report_${new Date().toISOString().substring(0, 10)}.xlsx`;
+      // グラフを再描画してPNG取得（集計タブが未表示でも確実に取得）
+      drawCombinedBarChart('chart-combined', helperData, helpeeData);
+      const canvas = document.getElementById('chart-combined');
+      const pngDataUrl = canvas.toDataURL('image/png');
+      const pngBase64 = pngDataUrl.split(',')[1];
 
-      XLSX.writeFile(wb, filename);
+      // ExcelJS Workbook 生成
+      const wb = new ExcelJS.Workbook();
+      wb.creator = 'ヘルプ管理アプリ';
+      wb.created = new Date();
+
+      // --- Sheet 1: グラフ ---
+      const chartSheet = wb.addWorksheet('グラフ');
+      chartSheet.getCell('A1').value = 'メンバー別ヘルプ回数（応援／依頼）';
+      chartSheet.getCell('A1').font = { bold: true, size: 14 };
+      chartSheet.getCell('A2').value = `期間: ${monthLabel}`;
+      chartSheet.getCell('A2').font = { size: 11 };
+      chartSheet.getCell('A3').value = '青：応援した回数 ／ 赤：依頼した回数';
+      chartSheet.getCell('A3').font = { size: 10, color: { argb: 'FF475569' } };
+
+      const imageId = wb.addImage({ base64: pngBase64, extension: 'png' });
+      chartSheet.addImage(imageId, {
+        tl: { col: 0, row: 4 },
+        ext: { width: canvas.width, height: canvas.height },
+      });
+
+      // --- Sheet 2: 応援者別 ---
+      const ws1 = wb.addWorksheet('応援者別');
+      ws1.addRow(['応援者別ヘルプ統計']);
+      ws1.getCell('A1').font = { bold: true, size: 14 };
+      ws1.addRow(['期間', monthLabel]);
+      ws1.addRow([]);
+      const header1 = ws1.addRow(['メンバー', '回数']);
+      header1.font = { bold: true };
+      for (const [name, recs] of helperData) {
+        ws1.addRow([name, recs.length]);
+      }
+      ws1.getColumn(1).width = 20;
+      ws1.getColumn(2).width = 10;
+
+      // --- Sheet 3: 依頼者別 ---
+      const ws2 = wb.addWorksheet('依頼者別');
+      ws2.addRow(['依頼者別ヘルプ統計']);
+      ws2.getCell('A1').font = { bold: true, size: 14 };
+      ws2.addRow(['期間', monthLabel]);
+      ws2.addRow([]);
+      const header2 = ws2.addRow(['メンバー', '回数']);
+      header2.font = { bold: true };
+      for (const [name, recs] of helpeeData) {
+        ws2.addRow([name, recs.length]);
+      }
+      ws2.getColumn(1).width = 20;
+      ws2.getColumn(2).width = 10;
+
+      // バッファ → Blob → ダウンロード
+      const buffer = await wb.xlsx.writeBuffer();
+      const blob = new Blob([buffer], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `help-report_${new Date().toISOString().substring(0, 10)}.xlsx`;
+      a.click();
+      URL.revokeObjectURL(url);
+
       showToast('Excelファイルをダウンロードしました');
     } catch (error) {
       console.error('Excel生成エラー:', error);
@@ -1026,7 +1058,12 @@
       csvBtn.addEventListener('click', downloadCSV);
     }
     if (excelBtn) {
-      excelBtn.addEventListener('click', downloadExcel);
+      excelBtn.addEventListener('click', () => {
+        downloadExcel().catch(err => {
+          console.error(err);
+          showToast('Excelの生成に失敗しました');
+        });
+      });
     }
     if (pdfBtn) {
       pdfBtn.addEventListener('click', downloadPDF);
